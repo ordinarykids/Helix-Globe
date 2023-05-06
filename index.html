@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8" />
-    <title>Title</title>
+    <title>Helix Globe Prototype</title>
     <style type="text/css">
         html,
         body {
@@ -73,7 +73,7 @@
 
 
 
-        
+        // ADD in custom LAT/LON points        
 
         const N = 72;
         const divisions = Math.round(Math.sqrt(N));
@@ -121,11 +121,11 @@
         //Declare a mesh object that holds all points
         spGroup = new THREE.Object3D();
         //Declare a mesh base material
-        var material = new THREE.MeshBasicMaterial({
-            color: 0xff0000,
-            transparent: false,
-            opacity: 0.1,
-        });
+        // var material = new THREE.MeshBasicMaterial({
+        //     color: 0xff0000,
+        //     transparent: false,
+        //     opacity: 0.1,
+        // });
 
         var materialPink = new THREE.MeshBasicMaterial({
             color: 0xF45B83,
@@ -161,6 +161,23 @@
             spMesh.position.copy(point); //Set the position of the current ball to the coordinates of the current point
             scene.add(spMesh);
 
+
+            // create just one triangle
+            const vertices = [
+                0, 1, 0, // top
+                0.5, 0, 1, // right
+                -0.5, 0, 1 // left
+            ]
+            const faces = [
+                // 0, 1, 2 // only one face
+                2, 1, 0
+            ]
+            const geometry = new THREE.PolyhedronGeometry(vertices, faces, 4, 0)
+            const material = new THREE.MeshNormalMaterial()
+            const triangle = new THREE.Mesh(geometry, material)
+            triangle.position.copy(point);
+
+           // scene.add(triangle);
 
             // // Define triangle
             // const triangleGeometry = new THREE.Geometry();
@@ -281,6 +298,19 @@
         //Update performance plug-ins
         stats.update();
         requestAnimationFrame(animate);
+
+
+        points.forEach(function (point) {
+   
+            triangle.mesh.lookAt(0, 0, 0);
+
+           
+
+
+        });
+
+
+
     }
 
     function draw() {
