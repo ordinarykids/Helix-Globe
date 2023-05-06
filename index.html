@@ -156,7 +156,7 @@
 
         //Traversing the array to generate small ball points and adding them to the object
         points.forEach(function (point) {
-            var spGeom = new THREE.SphereGeometry(2, 96, 96);
+            var spGeom = new THREE.SphereGeometry(2,24, 12);
             var spMesh = new THREE.Mesh(spGeom, materials[Math.floor(Math.random() * materials.length)]);
             spMesh.position.copy(point); //Set the position of the current ball to the coordinates of the current point
             scene.add(spMesh);
