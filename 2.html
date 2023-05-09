@@ -170,8 +170,9 @@
             var spGeom = new THREE.SphereGeometry(2,24, 12);
             var spMesh = new THREE.Mesh(spGeom, materials[Math.floor(Math.random() * materials.length)]);
             spMesh.position.copy(point); //Set the position of the current ball to the coordinates of the current point
-           // scene.add(spMesh);
+            //scene.add(spMesh);
 
+            
 
             // create just one triangle
             const vertices = [
@@ -183,25 +184,26 @@
                 // 0, 1, 2 // only one face
                 2, 1, 0
             ]
-            // const geometry = new THREE.PolyhedronGeometry(vertices, faces, 4, 0)
-            // const material = new THREE.MeshNormalMaterial()
-            // material.side = THREE.DoubleSide;
-            // const triangle = new THREE.Mesh(geometry, material)
-            // triangle.position.copy(point);
-
-           // scene.add(triangle);
+            const geometry = new THREE.PolyhedronGeometry(vertices, faces, 4, 0)
+            const material = new THREE.MeshNormalMaterial()
+            material.side = THREE.DoubleSide;
+            const triangle = new THREE.Mesh(geometry, material)
+            triangle.position.copy(point);
+            pyramids.push(triangle)
+           scene.add(triangle);
 
             ////////////////////////////////////////
-            var radius = 4;
-            var height = 5;
+            // var radius = 4;
+            // var height = 5;
 
 
-            var geometry = new THREE.CylinderGeometry(0, radius, height, 4, 1)
-            var material = new THREE.MeshNormalMaterial();
-            var pyramid = new THREE.Mesh(geometry, material);
-            pyramid.position.copy(point);
-            pyramids.push(pyramid)
-            scene.add(pyramid);
+            // var geometry = new THREE.CylinderGeometry(0, radius, height, 4, 1)
+            // var material = new THREE.MeshNormalMaterial();
+            
+            // var pyramid = new THREE.Mesh(geometry, material);
+            // pyramid.position.copy(point);
+            // pyramids.push(pyramid)
+            // scene.add(pyramid);
 
            
             camPos = camera.position;
@@ -254,7 +256,7 @@
         meshMaterial.side = THREE.DoubleSide; //Set the material to be visible on both sides
         var wireFrameMat = new THREE.MeshBasicMaterial();
         wireFrameMat.wireframe = true; //Render materials as wireframes
-        wireFrameMat.color = new THREE.Color(0xF45B83);
+        wireFrameMat.color = new THREE.Color(0x000000);
         // Assign both materials to geometry
         var mesh = THREE.SceneUtils.createMultiMaterialObject(geom, [
             meshMaterial,
@@ -330,21 +332,38 @@
         requestAnimationFrame(animate);
 
 
-        // pyramids.forEach(function (pyramid) {
-        
 
+        //console.log(camera.position)
+        pyramids.forEach(function (pyramid) {
+            // console.log(pyramid.position);
+           // console.log(camera.position)
+            updateTriangleRotation(pyramid, camera);
             
-        //        ////////////////////////////////////////
-        //     pyramidPos = pyramid.position;
-        //     n.subVectors(camPos, pyramidPos).normalize();
-        //     cpp.copy(pyramidPos);
-        //     plane.setFromNormalAndCoplanarPoint(n, cpp);
+               ////////////////////////////////////////
+            // pyramidPos = pyramid.position;
+            // n.subVectors(camPos, pyramidPos).normalize();
+            // cpp.copy(pyramidPos);
+            // plane.setFromNormalAndCoplanarPoint(n, cpp);
 
-        // });
-
-
-
+        });
     }
+
+
+        // function applyMatrixOfMesh(mesh) { // You should apply Matrix of cube and plane
+        //     mesh.updateMatrix();
+        //     mesh.geometry.applyMatrix(mesh.matrix);
+
+        //     mesh.position.set(0, 0, 0);
+        //     mesh.rotation.set(0, 0, 0);
+        //     mesh.updateMatrix();
+        // }
+
+        function updateTriangleRotation(triangle, camera) {
+           
+            triangle.lookAt(camera.position);
+            renderer.render(scene, camera);
+        }
+
 
     function draw() {
         initRender();

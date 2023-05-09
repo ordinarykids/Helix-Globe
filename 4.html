@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<title>Helix Globe Prototype</title>
+	<style type="text/css">
+		html,
+		body {
+			margin: 0;
+			height: 100%;
+		}
+
+		canvas {
+
+			position: absolute;
+			top: 0;
+		}
+	</style>
+</head>
+
+<body onload="draw();"></body>
+<script src="https://johnson2heng.github.io/three.js-demo/lib/three.js"></script>
+<script src="https://johnson2heng.github.io/three.js-demo/lib/js/QuickHull.js"></script>
+<script src="https://johnson2heng.github.io/three.js-demo/lib/js/geometries/ConvexGeometry.js"></script>
+<script src="https://johnson2heng.github.io/three.js-demo/lib/js/controls/OrbitControls.js"></script>
+<script src="https://johnson2heng.github.io/three.js-demo/lib/js/libs/stats.min.js"></script>
+<script src="https://johnson2heng.github.io/three.js-demo/lib/js/libs/dat.gui.min.js"></script>
+<script>
+	var renderer;
+	let points = [];
+	const pyramids = [];
+	function initRender() {
+		renderer = new THREE.WebGLRenderer({ antialias: true });
+		renderer.setSize(window.innerWidth, window.innerHeight);
+		document.body.appendChild(renderer.domElement);
+		// renderer.setClearColor(0xffff03, 0);
+		renderer.setClearColor(0xF2F2F2);
+	}
+
+	var camera;
+	function initCamera() {
+		camera = new THREE.PerspectiveCamera(
+			10,
+			window.innerWidth / window.innerHeight,
+			1,
+			10000
+		);
+		camera.position.set(0, 0, 600);
+	}
+
+
+	// CUSTOM CONTROLS to keep planes perpendicular to camera
+	let n = new THREE.Vector3(); // normal - for re-use
+	let cpp = new THREE.Vector3(); //coplanar point - for re-use
+	let plane = new THREE.Plane();
+
+	let camPos;
+
+
+
+	var scene;
+	function initScene() {
+		scene = new THREE.Scene();
+	}
+
+	var light;
+	function initLight() {
+		scene.add(new THREE.AmbientLight(0xffffff));
+
+		light = new THREE.DirectionalLight(0xffffff);
+		light.position.set(1, 1, 1);
+		scene.add(light);
+	}
+
+	function initModel() {
+		generatePoints();
+	}
+
+	//Methods to generate model calls
+	function generatePoints() {
+		// Randomly generate a set of vertices
+		//var points = [];
+
+
+
+		// ADD in custom LAT/LON points        
+
+		const N = 72;
+		const divisions = Math.round(Math.sqrt(N));
+
+
+		const sphereRadius = 48;
+		points = generateLatLonPoints(divisions, sphereRadius);
+
+		function generateLatLonPoints(divisions, radius) {
+			const points = [];
+			const latStep = Math.PI / (divisions + 1);
+			const lonStep = 2 * Math.PI / divisions;
+
+			for (let i = 0; i < divisions; i++) {
+				for (let j = 0; j < divisions; j++) {
+					const latitude = -Math.PI / 2 + (i + 1) * latStep;
+					const longitude = j * lonStep;
+					const x = radius * Math.cos(latitude) * Math.cos(longitude);
+					const y = radius * Math.cos(latitude) * Math.sin(longitude);
+					const z = radius * Math.sin(latitude);
+					points.push(new THREE.Vector3(x, y, z));
+				}
+			}
+
+			return points;
+		}
+
+
+
+
+
+		// for (var i = 0; i < 42; i++) {
+		//     //The position of the coordinate point of the xyz axis will be randomly generated within + - 150
+		//     var randomX = -150 + Math.round(Math.random() * 300);
+		//     var randomY = -150 + Math.round(Math.random() * 300);
+		//     var randomZ = -150 + Math.round(Math.random() * 300);
+
+		//     //Create a coordinate point and add it to the array
+		//     points.push(new THREE.Vector3(randomX, randomY, randomZ));
+
+		// }
+		// randomly updated points in points array
+		console.log(points);
+
+		//Declare a mesh object that holds all points
+		spGroup = new THREE.Object3D();
+		//Declare a mesh base material
+		// var material = new THREE.MeshBasicMaterial({
+		//     color: 0xff0000,
+		//     transparent: false,
+		//     opacity: 0.1,
+		// });
+
+		var materialPink = new THREE.MeshBasicMaterial({
+			color: 0xF45B83,
+			transparent: false,
+			opacity: 0.1,
+		});
+
+		var materialYellow = new THREE.MeshBasicMaterial({
+			color: 0xF8BE08,
+			transparent: false,
+			opacity: 0.1,
+		});
+
+		var materialBlue = new THREE.MeshBasicMaterial({
+			color: 0x3F4C77,
+			transparent: false,
+			opacity: 0.1,
+		});
+
+		var materialGreen = new THREE.MeshBasicMaterial({
+			color: 0x7ABC71,
+			transparent: false,
+			opacity: 0.1,
+		});
+
+		const materials = [materialPink, materialYellow, materialBlue, materialGreen];
+
+		let shapeGroup = new THREE.Group();
+		//Traversing the array to generate small ball points and adding them to the object
+		points.forEach(function (point) {
+			var spGeom = new THREE.SphereGeometry(2, 24, 12);
+			var spMesh = new THREE.Mesh(spGeom, materials[Math.floor(Math.random() * materials.length)]);
+			spMesh.position.copy(point); //Set the position of the current ball to the coordinates of the current point
+			scene.add(spMesh);
+
+
+
+			// function drawTriangle(
+			// 	new THREE.Vector3(0, 0, 0),
+			// 	new THREE.Vector3(4, 0, 0),
+			// 	new THREE.Vector3(2, 3.4641, 0)
+			// );
+
+			// const triangle2 = drawTriangle()
+
+
+
+
+			// create just one triangle
+			const vertices = [
+				-1, -1, 1, // top
+				3, -1, -1, // right
+				1, 2.4641, -1 // left
+			]
+			const faces = [
+				// 0, 1, 2 // only one face
+				2, 1, 0
+			]
+			const geometry = new THREE.PolyhedronGeometry(vertices, faces, 4, 0)
+			const material = new THREE.MeshNormalMaterial()
+			material.side = THREE.DoubleSide;
+			const triangle = new THREE.Mesh(geometry, material)
+			triangle.position.copy(point);
+			pyramids.push(triangle)
+
+			shapeGroup.add(triangle);
+
+			scene.add(shapeGroup);
+
+			////////////////////////////////////////
+			// var radius = 4;
+			// var height = 5;
+
+
+			// var geometry = new THREE.CylinderGeometry(0, radius, height, 4, 1)
+			// var material = new THREE.MeshNormalMaterial();
+
+			// var pyramid = new THREE.Mesh(geometry, material);
+			// pyramid.position.copy(point);
+			// pyramids.push(pyramid)
+			// scene.add(pyramid);
+
+
+			camPos = camera.position;
+
+
+		});
+		// Add objects that hold all points to the scene
+		scene.add(spGroup);
+
+		// Use these points to instantiate a THREE.ConvexGeometry Geometry objects
+		var hullGeometry = new THREE.ConvexGeometry(points);
+		//Build model
+		hullMesh = createMesh(hullGeometry);
+		//Add to scene
+		scene.add(hullMesh);
+
+		console.log("total number points ", points.length);
+
+	}
+
+
+
+
+	function createMesh(geom) {
+		console.log('createMesh')
+		// Instantiate a green, translucent material
+		var meshMaterial = new THREE.MeshBasicMaterial({
+			color: 0x000000,
+			transparent: true,
+			opacity: 0,
+		});
+		meshMaterial.side = THREE.DoubleSide; //Set the material to be visible on both sides
+		var wireFrameMat = new THREE.MeshBasicMaterial();
+		wireFrameMat.wireframe = true; //Render materials as wireframes
+		wireFrameMat.color = new THREE.Color(0x000000);
+		// Assign both materials to geometry
+		var mesh = THREE.SceneUtils.createMultiMaterialObject(geom, [
+			meshMaterial,
+			wireFrameMat,
+		]);
+
+
+		return mesh;
+
+	}
+
+	//Initialize performance plug-ins
+	var stats;
+	function initStats() {
+		stats = new Stats();
+		document.body.appendChild(stats.dom);
+	}
+
+	//User interaction plug in left mouse button press and hold rotation, right mouse button press and hold translation, scroll wheel zoom
+	var controls;
+	function initControls() {
+		controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+		// If you use the animate method, delete this function
+		//controls.addEventListener( 'change', render );
+		// Whether there is inertia in the meaning of damping or rotation when the animation is recycled
+		controls.enableDamping = true;
+		//Dynamic damping coefficient is the mouse drag rotation sensitivity
+		//controls.dampingFactor = 0.25;
+		//Can I zoom
+		controls.enableZoom = true;
+		//Auto rotate or not
+		controls.autoRotate = false;
+		//Set the maximum distance between the camera and the origin
+		controls.minDistance = 20;
+		//Set the maximum distance between the camera and the origin
+		controls.maxDistance = 1600;
+		//Enable right drag
+		controls.enablePan = true;
+	}
+
+	function render() {
+
+		renderer.render(scene, camera);
+
+
+	}
+
+	//Function triggered by window change
+	function onWindowResize() {
+		camera.aspect = window.innerWidth / window.innerHeight;
+		camera.updateProjectionMatrix();
+		render();
+		renderer.setSize(window.innerWidth, window.innerHeight);
+	}
+
+
+
+
+	function animate() {
+
+		const now = Date.now() / 800;
+
+		scene.rotation.x = now * .07;
+		scene.rotation.y = now * .07;
+		scene.rotation.z = now * .07;
+		// scene.rotation.y += Math.sin(now) * .03;
+		// scene.position.y = Math.cos(now) * 3;
+		//Update controller
+		controls.update();
+		
+
+		//console.log(camera.position)
+
+		//Update performance plug-ins
+		stats.update();
+		requestAnimationFrame(animate);
+
+
+
+		//console.log(camera.position)
+		pyramids.forEach(function (pyramid) {
+			// console.log(pyramid.position);
+			// console.log(camera.position)
+			updateTriangleRotation(pyramid, camera);
+
+			////////////////////////////////////////
+			// pyramidPos = pyramid.position;
+			// n.subVectors(camPos, pyramidPos).normalize();
+			// cpp.copy(pyramidPos);
+			// plane.setFromNormalAndCoplanarPoint(n, cpp);
+			pyramid.lookAt(camera.position);
+		});
+
+
+		renderer.render(scene, camera);
+	}
+
+
+	// function applyMatrixOfMesh(mesh) { // You should apply Matrix of cube and plane
+	//     mesh.updateMatrix();
+	//     mesh.geometry.applyMatrix(mesh.matrix);
+
+	//     mesh.position.set(0, 0, 0);
+	//     mesh.rotation.set(0, 0, 0);
+	//     mesh.updateMatrix();
+	// }
+
+	function updateTriangleRotation(triangle, camera) {
+
+		triangle.lookAt(camera.position);
+		renderer.render(scene, camera);
+	}
+
+
+	function draw() {
+		initRender();
+		initScene();
+		initCamera();
+		initLight();
+		initModel();
+		initControls();
+		initStats();
+		render();
+		animate();
+		window.onresize = onWindowResize;
+
+
+
+
+
+	}
+</script>
+
+</html>
